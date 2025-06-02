@@ -2,9 +2,9 @@ import { JSONValue } from '../../json-value/json-value';
 
 export type ImageModelV1CallOptions = {
   /**
-Prompt for the image generation.
-     */
-  prompt: string;
+  Prompt for image generation. Required unless using editImages/editInstructions.
+  */
+  prompt?: string;
 
   /**
 Number of images to generate.

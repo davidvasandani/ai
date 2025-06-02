@@ -17,13 +17,13 @@ import {
 Generates images using an image model.
 
 @param model - The image model to use.
-@param prompt - The prompt that should be used to generate the image.
+@param prompt - (Optional) Prompt for image generation. Required unless using editImages/editInstructions.
 @param n - Number of images to generate. Default: 1.
 @param size - Size of the images to generate. Must have the format `{width}x{height}`.
 @param aspectRatio - Aspect ratio of the images to generate. Must have the format `{width}:{height}`.
 @param seed - Seed for the image generation.
 @param editImages - (Optional) Images to use as the basis for editing or inpainting. Array of base64 strings or Uint8Array.
-@param editInstructions - (Optional) Instructions for how to edit the provided images.
+@param editInstructions - (Optional) Instructions for how to edit the provided images. Required if editImages is provided.
 @param providerOptions - Additional provider-specific options that are passed through to the provider as body parameters.
 @param maxRetries - Maximum number of retries. Set to 0 to disable retries. Default: 2.
 @param abortSignal - An optional abort signal that can be used to cancel the call.
@@ -51,9 +51,9 @@ The image model to use.
   model: ImageModelV1;
 
   /**
-The prompt that should be used to generate the image.
+  Prompt for image generation. Required unless using editImages/editInstructions.
    */
-  prompt: string;
+  prompt?: string;
 
   /**
 Number of images to generate.
@@ -81,7 +81,7 @@ Seed for the image generation. If not provided, the default seed will be used.
   editImages?: Array<string | Uint8Array>;
 
   /**
-  Instructions for how to edit the provided images.
+  Instructions for how to edit the provided images. Required if editImages is provided.
   */
   editInstructions?: string;
 
@@ -119,6 +119,12 @@ Only applicable for HTTP-based providers.
  */
   headers?: Record<string, string>;
 }): Promise<GenerateImageResult> {
+  if (!prompt && !(editImages && editInstructions)) {
+    throw new Error(
+      "You must provide either 'prompt' or both 'editImages' and 'editInstructions'.",
+    );
+  }
+
   const { retry } = prepareRetries({ maxRetries: maxRetriesArg });
 
   // default to 1 if the model has not specified limits on
