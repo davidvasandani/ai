@@ -136,22 +136,26 @@ Only applicable for HTTP-based providers.
     return remainder === 0 ? maxImagesPerCall : remainder;
   });
   const results = await Promise.all(
-    callImageCounts.map(async callImageCount =>
-      retry(() =>
-        model.doGenerate({
-          prompt,
-          n: callImageCount,
-          abortSignal,
-          headers,
-          size,
-          aspectRatio,
-          seed,
-          editImages,
-          editInstructions,
-          providerOptions: providerOptions ?? {},
-        }),
-      ),
-    ),
+    callImageCounts.map(async callImageCount => {
+      // Build options object, omitting undefined editImages/editInstructions
+      const options: any = {
+        prompt,
+        n: callImageCount,
+        abortSignal,
+        headers,
+        size,
+        aspectRatio,
+        seed,
+        providerOptions: providerOptions ?? {},
+      };
+      if (typeof editImages !== 'undefined') {
+        options.editImages = editImages;
+      }
+      if (typeof editInstructions !== 'undefined') {
+        options.editInstructions = editInstructions;
+      }
+      return retry(() => model.doGenerate(options));
+    }),
   );
 
   // collect result images, warnings, and response metadata
