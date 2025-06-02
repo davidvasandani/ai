@@ -382,4 +382,25 @@ describe('generateImage', () => {
       },
     ]);
   });
+
+  it('should pass editImages and editInstructions to doGenerate', async () => {
+    const editImages = [pngBase64, jpegBase64];
+    const editInstructions = 'Make the sky purple';
+    let capturedArgs!: Parameters<ImageModelV1['doGenerate']>[0];
+
+    await generateImage({
+      model: new MockImageModelV1({
+        doGenerate: async args => {
+          capturedArgs = args;
+          return createMockResponse({ images: [pngBase64] });
+        },
+      }),
+      prompt,
+      editImages,
+      editInstructions,
+    });
+
+    expect(capturedArgs.editImages).toStrictEqual(editImages);
+    expect(capturedArgs.editInstructions).toBe(editInstructions);
+  });
 });

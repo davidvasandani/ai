@@ -48,9 +48,12 @@ export class OpenAIImageModel implements ImageModelV1 {
     providerOptions,
     headers,
     abortSignal,
-  }: Parameters<ImageModelV1['doGenerate']>[0]): Promise<
-    Awaited<ReturnType<ImageModelV1['doGenerate']>>
-  > {
+    editImages,
+    editInstructions,
+  }: Parameters<ImageModelV1['doGenerate']>[0] & {
+    editImages?: Array<string | Uint8Array>;
+    editInstructions?: string;
+  }): Promise<Awaited<ReturnType<ImageModelV1['doGenerate']>>> {
     const warnings: Array<ImageModelV1CallWarning> = [];
 
     if (aspectRatio != null) {
@@ -67,22 +70,37 @@ export class OpenAIImageModel implements ImageModelV1 {
     }
 
     const currentDate = this.config._internal?.currentDate?.() ?? new Date();
+
+    // Prepare edit image fields for OpenAI API if present
+    let body: Record<string, any> = {
+      model: this.modelId,
+      prompt,
+      n,
+      size,
+      ...(providerOptions.openai ?? {}),
+      ...(!hasDefaultResponseFormat.has(this.modelId)
+        ? { response_format: 'b64_json' }
+        : {}),
+    };
+    if (editImages && editImages.length > 0) {
+      // OpenAI expects a single image for edit, and optionally a mask
+      // Only the first image is used for 'image', the second (if present) for 'mask'
+      body.image = editImages[0];
+      if (editImages.length > 1) {
+        body.mask = editImages[1];
+      }
+      if (editInstructions) {
+        body.prompt = editInstructions;
+      }
+    }
+
     const { value: response, responseHeaders } = await postJsonToApi({
       url: this.config.url({
         path: '/images/generations',
         modelId: this.modelId,
       }),
       headers: combineHeaders(this.config.headers(), headers),
-      body: {
-        model: this.modelId,
-        prompt,
-        n,
-        size,
-        ...(providerOptions.openai ?? {}),
-        ...(!hasDefaultResponseFormat.has(this.modelId)
-          ? { response_format: 'b64_json' }
-          : {}),
-      },
+      body,
       failedResponseHandler: openaiFailedResponseHandler,
       successfulResponseHandler: createJsonResponseHandler(
         openaiImageResponseSchema,

@@ -22,8 +22,9 @@ Generates images using an image model.
 @param size - Size of the images to generate. Must have the format `{width}x{height}`.
 @param aspectRatio - Aspect ratio of the images to generate. Must have the format `{width}:{height}`.
 @param seed - Seed for the image generation.
-@param providerOptions - Additional provider-specific options that are passed through to the provider
-as body parameters.
+@param editImages - (Optional) Images to use as the basis for editing or inpainting. Array of base64 strings or Uint8Array.
+@param editInstructions - (Optional) Instructions for how to edit the provided images.
+@param providerOptions - Additional provider-specific options that are passed through to the provider as body parameters.
 @param maxRetries - Maximum number of retries. Set to 0 to disable retries. Default: 2.
 @param abortSignal - An optional abort signal that can be used to cancel the call.
 @param headers - Additional HTTP headers to be sent with the request. Only applicable for HTTP-based providers.
@@ -37,6 +38,8 @@ export async function generateImage({
   size,
   aspectRatio,
   seed,
+  editImages,
+  editInstructions,
   providerOptions,
   maxRetries: maxRetriesArg,
   abortSignal,
@@ -71,6 +74,16 @@ Aspect ratio of the images to generate. Must have the format `{width}:{height}`.
 Seed for the image generation. If not provided, the default seed will be used.
    */
   seed?: number;
+
+  /**
+  Images to use as the basis for editing or inpainting. Array of base64 strings or Uint8Array.
+  */
+  editImages?: Array<string | Uint8Array>;
+
+  /**
+  Instructions for how to edit the provided images.
+  */
+  editInstructions?: string;
 
   /**
 Additional provider-specific options that are passed through to the provider
@@ -133,6 +146,8 @@ Only applicable for HTTP-based providers.
           size,
           aspectRatio,
           seed,
+          editImages,
+          editInstructions,
           providerOptions: providerOptions ?? {},
         }),
       ),

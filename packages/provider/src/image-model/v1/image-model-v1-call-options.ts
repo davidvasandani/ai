@@ -57,4 +57,14 @@ Additional HTTP headers to be sent with the request.
 Only applicable for HTTP-based providers.
  */
   headers?: Record<string, string | undefined>;
+
+  /**
+  Images to use as the basis for editing or inpainting. Array of base64 strings or Uint8Array.
+  */
+  editImages?: Array<string | Uint8Array>;
+
+  /**
+  Instructions for how to edit the provided images.
+  */
+  editInstructions?: string;
 };
